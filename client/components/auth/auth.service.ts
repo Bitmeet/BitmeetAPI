@@ -1,6 +1,6 @@
 'use strict';
 
-import _ from 'lodash';
+var _ = require('lodash');
 
 // @flow
 class _User {
@@ -189,7 +189,7 @@ export function AuthService($location, $http, $cookies, $q, appConfig, Util, Use
       * @return {Bool|Promise}
       */
     isAdmin(...args) {
-      return Auth.hasRole(...Reflect.apply([].concat, ['admin'], args));
+      return Auth.hasRole(/*...*/Reflect.apply([].concat, ['admin'], args));
     },
 
      /**
