@@ -4,6 +4,8 @@ import User from './user.model';
 import config from '../../config/environment';
 import jwt from 'jsonwebtoken';
 
+var sendgrid = require('sendgrid')(JSON.parse(fs.readFileSync('../apis.key.json', 'utf8')).sendgrid);
+
 function validationError(res, statusCode) {
   statusCode = statusCode || 422;
   return function(err) {
@@ -119,4 +121,52 @@ export function me(req, res, next) {
  */
 export function authCallback(req, res) {
   res.redirect('/');
+}
+
+function newUser(url, email, name, id) {
+  var params = {
+    smtpapi: new sendgrid.smtpapi(),
+    to: email,
+    from: 'info@bitmeet.co',
+    // subject: 'Welcome to Bitmeet',
+    // html: '<b>Hello ' + name + ', </b><br><br>' +
+    //  'Click on the link to complete registration : <a href="' + url + 'api/users/verify/' + id +'">' + url + 'api/users/verify/' + id +'</a>'
+    subject: 'ברוכים הבאים ל-Bitmeet!',
+    html: '<html lang="he" dir="rtl"><body dir="rtl"><b>שלום ' + name + ', </b><br><br>' +
+      'אנא לחצו על הלינק להשלמת הרישום: <a href="' + url + 'api/users/verify/' + id + '">' + url + 'api/users/verify/' + id + '</a><br><br>' +
+      'בתודה,<br>צוות Bitmeet</body></html>'
+  };
+  var sendEmail = new sendgrid.Email(params);
+  sendgrid.send(sendEmail, function (err, json) {
+    if (err) {
+      return console.error(err)
+    }
+    console.log(json);
+  });
+}
+
+function sendTokenPasswordRecoveryEmail(url, email, name, token, key) {
+  var params = {
+    smtpapi: new sendgrid.smtpapi(),
+    to: email,
+    from: 'info@bitmeet.co',
+    // subject: 'Bitmeet password recovery',
+    // html: '<b>Hello ' + name + ', </b><br><br>' +
+    //  'You are receiving this mail because you (or someone else) have requested the reset of the password for your account.<br><br>' +
+    //  'If you requested to change your password then to continue the process please press: <a href="' + url + 'api/users/verifyRecoveryPasswordToken/' + token +
+    //  '">here</a> and provide these key numbers: <b>' + key + '</b><br>If you did not request this, please ignore this email and your password will remain unchanged.'
+    subject: 'שיחזור סיסמת חשבון Bitmeet',
+    html: '<html lang="he" dir="rtl"><body dir="rtl"><b>שלום ' + name + ', </b><br><br>' +
+      'אתם מקבלים דוא"ל זה מכיוון שאתם (או מישהו אחר) ביקשתם לאפס את סיסמת חשבונכם.<br><br>' +
+      'אם בקשתם לאפס את הסיסמה אנא לחצו: <a href="' + url + 'api/users/verifyRecoveryPasswordToken/' + token +
+      '">כאן</a> והכניסו את הקוד הבא: <b>' + key + '</b><br>אם לא בקשתם לאפס את הסיסמה, אנא התעלמו מדוא"ל זה וסיסמתכם תשאר ללא שינוי.<br><br>' +
+      'בתודה,<br>צוות Bitmeet</body></html>'
+  };
+  var sendEmail = new sendgrid.Email(params);
+  sendgrid.send(sendEmail, function (err, json) {
+    if (err) {
+      return console.error(err);
+    }
+    console.log(json);
+  });
 }
