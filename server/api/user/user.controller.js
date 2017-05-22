@@ -50,6 +50,27 @@ export function create(req, res) {
 }
 
 /**
+ * Verify the user after clicking the link in the mail
+ */
+export function verify(req, res) {
+  var userId = req.params.id,
+    protocol = (req.secure) ? 'https://' : 'http://',
+    url = protocol + req.headers.host + '/verificationSuccessfull';
+  return User.findById(userId).exec()
+    .then(user => {
+      user.isVerified = true;
+      return user.save()
+        .then(() => {
+          res.writeHead(302, {
+            'Location': url
+          });
+          res.end();
+        })
+        .catch(validationError(res));
+    });
+}
+
+/**
  * Get a single user
  */
 export function show(req, res, next) {

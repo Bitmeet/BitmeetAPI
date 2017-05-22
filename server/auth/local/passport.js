@@ -6,7 +6,7 @@ function localAuthenticate(User, email, password, done) {
     email: email.toLowerCase()
   }).exec()
     .then(user => {
-      if(!user) {
+      if(!user || !user.isVerified) {
         return done(null, false, {
           message: 'This email is not registered.'
         });
