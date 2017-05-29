@@ -3,6 +3,7 @@
 import User from './user.model';
 import config from '../../config/environment';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
 
 var sendgrid = require('sendgrid')(JSON.parse(fs.readFileSync('../apis.key.json', 'utf8')).sendgrid);
 
@@ -41,10 +42,17 @@ export function create(req, res) {
   newUser.role = 'user';
   newUser.save()
     .then(function(user) {
-      var token = jwt.sign({ _id: user._id }, config.secrets.session, {
-        expiresIn: 60 * 60 * 5
+      var protocol = (req.secure) ? 'https://' : 'http://',
+        url = protocol + req.headers.host + '/';
+      newUser(url, req.body.email, req.body.name, user._id);
+      res.writeHead(302, {
+        'Location': url
       });
-      res.json({ token });
+      res.end();
+      // var token = jwt.sign({ _id: user._id }, config.secrets.session, {
+      //   expiresIn: 60 * 60 * 5
+      // });
+      // res.json({ token });
     })
     .catch(validationError(res));
 }
@@ -145,6 +153,7 @@ export function authCallback(req, res) {
 }
 
 function newUser(url, email, name, id) {
+  console.log('Bla bla bla');
   var params = {
     smtpapi: new sendgrid.smtpapi(),
     to: email,
