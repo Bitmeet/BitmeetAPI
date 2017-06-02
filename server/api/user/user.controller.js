@@ -64,7 +64,7 @@ export function create(req, res) {
 export function verify(req, res) {
   var userId = req.params.id,
     protocol = (req.secure) ? 'https://' : 'http://',
-    url = protocol + req.headers.host + '/verificationSuccessfull';
+    url = protocol + req.headers.host + '/successfulVerification';
   return User.findById(userId).exec()
     .then(user => {
       user.isVerified = true;
