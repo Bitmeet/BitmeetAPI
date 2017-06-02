@@ -10,6 +10,7 @@ var sendgrid = require('sendgrid')(JSON.parse(fs.readFileSync('../apis.key.json'
 function validationError(res, statusCode) {
   statusCode = statusCode || 422;
   return function(err) {
+    console.log(err);
     return res.status(statusCode).json(err);
   };
 }
@@ -44,7 +45,7 @@ export function create(req, res) {
     .then(function(user) {
       var protocol = (req.secure) ? 'https://' : 'http://',
         url = protocol + req.headers.host + '/';
-      newUser(url, req.body.email, req.body.name, user._id);
+      sendNewUserEmail(url, req.body.email, req.body.name, user._id);
       res.writeHead(302, {
         'Location': url
       });
@@ -152,8 +153,7 @@ export function authCallback(req, res) {
   res.redirect('/');
 }
 
-function newUser(url, email, name, id) {
-  console.log('Bla bla bla');
+function sendNewUserEmail(url, email, name, id) {
   var params = {
     smtpapi: new sendgrid.smtpapi(),
     to: email,
