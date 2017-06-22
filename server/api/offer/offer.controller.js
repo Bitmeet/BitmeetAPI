@@ -26,7 +26,7 @@ function respondWithResult(res, statusCode) {
 function patchUpdates(patches) {
   return function(entity) {
     try {
-      jsonpatch.apply(entity, patches, /*validate*/ true);
+      jsonpatch.applyPatch(entity, patches, /*validate*/ true);
     } catch(err) {
       return Promise.reject(err);
     }
@@ -118,7 +118,7 @@ export function show(req, res) {
 
 // Creates a new Offer in the DB
 export function create(req, res) {
-  return Offer.create(req.body)
+  return Offer.create(Object.assign({}, req.body, { userId: req.user._id }))
     .then(respondWithResult(res, 201))
     .catch(handleError(res));
 }
@@ -128,7 +128,7 @@ export function upsert(req, res) {
   if(req.body._id) {
     delete req.body._id;
   }
-  return Offer.findOneAndUpdate({_id: req.params.id}, req.body, {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true}).exec()
+  return Offer.findOneAndUpdate(Object.assign({ _id: req.params.id }, req.user.role === 'admin' ? {} : { userId: req.user._id }), req.body, {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true}).exec()
 
     .then(respondWithResult(res))
     .catch(handleError(res));
@@ -139,7 +139,7 @@ export function patch(req, res) {
   if(req.body._id) {
     delete req.body._id;
   }
-  return Offer.findById(req.params.id).exec()
+  return Offer.findOne(Object.assign({ _id: req.params.id }, req.user.role === 'admin' ? {} : { userId: req.user._id })).exec()
     .then(handleEntityNotFound(res))
     .then(patchUpdates(req.body))
     .then(respondWithResult(res))
@@ -148,7 +148,7 @@ export function patch(req, res) {
 
 // Deletes a Offer from the DB
 export function destroy(req, res) {
-  return Offer.findById(req.params.id).exec()
+  return Offer.findOne(Object.assign({ _id: req.params.id }, req.user.role === 'admin' ? {} : { userId: req.user._id })).exec()
     .then(handleEntityNotFound(res))
     .then(removeEntity(res))
     .catch(handleError(res));
